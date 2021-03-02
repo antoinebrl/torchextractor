@@ -1,12 +1,14 @@
 import logging
 from collections.abc import Iterable
+from typing import Dict
+from typing import Iterable as IterableType
 
 from torch import nn
 
 logger = logging.getLogger(__name__)
 
 
-def attach_name_to_modules(model: nn.Module):
+def attach_name_to_modules(model: nn.Module) -> nn.Module:
     """
     Assign a unique name to each module based on the nested structure of the model.
 
@@ -26,7 +28,7 @@ def attach_name_to_modules(model: nn.Module):
     return model
 
 
-def find_modules_by_names(model: nn.Module, names: Iterable):
+def find_modules_by_names(model: nn.Module, names: IterableType[str]) -> Dict:
     """
     Find some modules given their fully qualifying names.
 
@@ -39,7 +41,7 @@ def find_modules_by_names(model: nn.Module, names: Iterable):
 
     Returns
     -------
-        dict: name -> module
+        dict: name -> output (often torch.Tensor)
             The provided names without any match will not appears in the returned dictionary
 
     """
