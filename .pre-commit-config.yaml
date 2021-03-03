@@ -3,7 +3,7 @@ repos:
     rev: 20.8b1
     hooks:
       - id: black
-        args: ["--line-length", "119", "torchextractor/", "test/"]
+        args: ["--line-length", "119", "torchextractor/", "tests/"]
 
   - repo: https://github.com/pycqa/isort
     rev: 5.7.0
