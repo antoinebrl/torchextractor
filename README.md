@@ -1,17 +1,22 @@
-# torchextractor: PyTorch Intermediate Feature Extraction
+# `torchextractor`: PyTorch Intermediate Feature Extraction
 
 ## Introduction
 
 Too many times some model definitions get remorselessly copy-pasted just because the
-`forward` function does not return what the person expects. With `torchextractor`
-you can easily capture intermediate feature maps and build whatever you fancy on 
-top of it.
+`forward` function does not return what the person expects. You provide module names
+and `torchextractor` takes care of the extraction for you.It's never been easier to
+extract feature, add an extra loss or plug another head to a network.
+Ler us know what amazing things you build with `torchextractor`!
 
 ## Installation
 
 ```shell
 pip install git+https://github.com/antoinebrl/torchextractor.git
 ```
+
+Requirements:
+- Python >= 3.6+
+- torch >= 1.4.0
 
 ## Usage
 
@@ -33,6 +38,69 @@ print(feature_shapes)
 #   'layer3': torch.Size([1, 256, 14, 14]),
 #   'layer4': torch.Size([1, 512, 7, 7]),
 # }
+```
+
+[See more examples](examples.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/antoinebrl/torchextractor/HEAD?filepath=examples.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/antoinebrl/torchextractor/blob/master/examples.ipynb)
+
+## FAQ
+
+**• How do I know the names of the modules?**
+
+You can print all module names like this:
+```python
+for name, module in model.named_modules():
+    print(name)
+```
+
+**• Why do some operations not get listed?**
+
+It is not possible to add hooks if operations are not defined as modules.
+Therefore, `F.relu` cannot be captured but `nn.Relu()` can.
+
+**• How can I avoid listing all relevant modules?**
+
+You can specify a custom filtering function to hook the relevant modules:
+```python
+# Hook everything !
+module_filter_fn = lambda module, name: True
+
+# Capture of all modules inside first layer
+module_filter_fn = lambda module, name: name.startswith("layer1")
+
+# Focus on all convolutions
+module_filter_fn = lambda module, name: isinstance(module, torch.nn.Conv2d)
+
+model = tx.Extractor(model, module_filter_fn=module_filter_fn)
+```
+
+**• Is it compatible with ONNX?**
+
+`tx.Extractor` is compatible with ONNX! This means you can also access intermediate features maps after the export.
+
+Pro-tip: name the output nodes by using `output_names` when calling `torch.onnx.export`.
+
+**• Is it compatible with TorchScript?**
+
+Bad news, TorchScript cannot take variable number of arguments and keyword-only arguments.
+Good news, there is a workaround! The solution is to overwrite the `forward` function
+of `tx.Extractor` to replicate the interface of the model.
+
+```python
+import torch
+import torchvision
+import torchextractor as tx
+
+class MyExtractor(tx.Extractor):
+    def forward(self, x1, x2, x3):
+        # Assuming the model takes x1, x2 and x3 as input
+        output = self.model(x1, x2, x3)
+        return output, self.feature_maps
+
+model = torchvision.models.resnet18(pretrained=True)
+model = MyExtractor(model, ["layer1", "layer2", "layer3", "layer4"])
+model_traced = torch.jit.script(model)
 ```
 
 ## Contributing
