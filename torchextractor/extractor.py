@@ -47,7 +47,7 @@ def register_hook(module_filter_fn: Callable, hook: Callable, hook_handles: List
     """
 
     def init_hook(module: nn.Module):
-        if module_filter_fn(module):
+        if module_filter_fn(module, module._extractor_fullname):
             handle = module.register_forward_hook(hook)
             hook_handles.append(handle)
 
@@ -68,12 +68,21 @@ class Extractor(nn.Module):
         Parameters
         ----------
         model: nn.Module,
-            The model to extract feature maps from.
+            The model to extract features from.
+
         module_names: list of str, default None
             The fully qualified names of the modules producing the relevant feature maps.
+
         module_filter_fn: callable, default None
-            A filtering function called on each module. Should return True for modules producing
-            the relevant feature maps. If None, the module names are used.
+            A filtering function. Takes a module and module name as input and returns True for modules
+            producing the relevant features. Either `module_names` or `module_filter_fn` should be
+            provided but not both at the same time.
+
+            Example::
+
+                def module_filter_fn(module, name):
+                    return isinstance(module, torch.nn.Conv2d)
+
         caching_fn: callable, default None
             Operation to carry at each forward pass.
             If not None, :func:`forward <collector.FeatureMapExtractor.forward>`
@@ -93,7 +102,7 @@ class Extractor(nn.Module):
         self.feature_maps = {}
         self.hook_handles = []
 
-        module_filter_fn = module_filter_fn or (lambda m: m._extractor_fullname in module_names)
+        module_filter_fn = module_filter_fn or (lambda module, name: name in module_names)
         caching_fn = caching_fn or hook_capture_module_output
         caching_fn = partial(caching_fn, feature_maps=self.feature_maps)
         self.model.apply(register_hook(module_filter_fn, caching_fn, self.hook_handles))
