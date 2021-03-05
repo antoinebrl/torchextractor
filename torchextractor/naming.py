@@ -18,7 +18,7 @@ def attach_name_to_modules(model: nn.Module) -> nn.Module:
         PyTorch model to decorate with fully qualifying names for each module.
 
     Returns
-    _______
+    -------
     model: nn.Module.
         The provided model as input.
 
