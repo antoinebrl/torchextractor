@@ -1,7 +1,6 @@
 import unittest
 from collections import OrderedDict
 
-import onnx
 import torch
 from torch import nn
 
@@ -128,10 +127,15 @@ class TestExtractor(unittest.TestCase):
 
         torch.onnx.export(model, input, "/tmp/model.onnx", output_names=["classifier"] + list(feature_maps.keys()))
 
-        model = onnx.load("/tmp/model.onnx")
-        output_names = [node.name for node in model.graph.output]
-        for name in names:
-            self.assertTrue(name in output_names)
+        try:
+            import onnx
+
+            model = onnx.load("/tmp/model.onnx")
+            output_names = [node.name for node in model.graph.output]
+            for name in names:
+                self.assertTrue(name in output_names)
+        except ImportError as e:
+            print(e)
 
     def test_jit_override(self):
         class MyExtractor(Extractor):
