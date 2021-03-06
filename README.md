@@ -1,5 +1,12 @@
 # `torchextractor`: PyTorch Intermediate Feature Extraction
 
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/torchextractor)](https://pypi.org/project/torchextractor/)
+[![PyPI](https://img.shields.io/pypi/v/torchextractor)](https://pypi.org/project/torchextractor/)
+[![Read the Docs](https://img.shields.io/readthedocs/torchextractor)](https://torchextractor.readthedocs.io/en/latest/)
+[![Upload Python Package](https://github.com/antoinebrl/torchextractor/actions/workflows/publish.yml/badge.svg)](https://github.com/antoinebrl/torchextractor/actions/workflows/publish.yml)
+[![GitHub](https://img.shields.io/github/license/antoinebrl/torchextractor)](https://github.com/antoinebrl/torchextractor/blob/main/LICENSE)
+    
+
 ## Introduction
 
 Too many times some model definitions get remorselessly copy-pasted just because the
