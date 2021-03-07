@@ -28,7 +28,7 @@ def attach_name_to_modules(model: nn.Module) -> nn.Module:
     return model
 
 
-def find_modules_by_names(model: nn.Module, names: IterableType[str]) -> Dict:
+def find_modules_by_names(model: nn.Module, names: IterableType[str]) -> Dict[str, nn.Module]:
     """
     Find some modules given their fully qualifying names.
 
@@ -41,19 +41,10 @@ def find_modules_by_names(model: nn.Module, names: IterableType[str]) -> Dict:
 
     Returns
     -------
-        dict: name -> output (often torch.Tensor)
-            The provided names without any match will not appears in the returned dictionary
+        dict: name -> module
+            If no match is found for a name, it is not added to the returned structure
 
     """
-    assert isinstance(names, Iterable)
-    found_modules = {
-        m._extractor_fullname: m
-        for m in model.modules()
-        if hasattr(m, "_extractor_fullname") and m._extractor_fullname in names
-    }
-    if len(found_modules) != len(names):
-        logger.warning(
-            "It looks like some names could not be find. "
-            "Make sure `attach_name_to_modules(model)` is called before calling this search function"
-        )
+    assert isinstance(names, (list, tuple))
+    found_modules = {name: module for name, module in model.named_modules() if name in names}
     return found_modules
