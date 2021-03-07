@@ -57,6 +57,10 @@ print(feature_shapes)
 
 You can print all module names like this:
 ```python
+tx.list_module_names(model)
+
+# OR
+
 for name, module in model.named_modules():
     print(name)
 ```

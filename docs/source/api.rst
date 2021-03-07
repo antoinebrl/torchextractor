@@ -8,6 +8,6 @@ Extractor
 Utils
 -----
 
-.. autofunction:: torchextractor.attach_name_to_modules
+.. autofunction:: torchextractor.list_module_names
 
 .. autofunction:: torchextractor.find_modules_by_names

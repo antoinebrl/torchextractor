@@ -2,10 +2,27 @@ import logging
 from collections.abc import Iterable
 from typing import Dict
 from typing import Iterable as IterableType
+from typing import List
 
 from torch import nn
 
 logger = logging.getLogger(__name__)
+
+
+def list_module_names(model: nn.Module) -> List[str]:
+    """
+    List names of modules and submodules.
+
+    Parameters
+    ----------
+    model: nn.Module
+        PyTorch model to examine.
+
+    Returns
+    -------
+    List of names
+    """
+    return [name for name, module in model.named_modules()]
 
 
 def attach_name_to_modules(model: nn.Module) -> nn.Module:
