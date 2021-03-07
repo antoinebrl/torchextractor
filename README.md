@@ -18,7 +18,8 @@ Ler us know what amazing things you build with `torchextractor`!
 ## Installation
 
 ```shell
-pip install git+https://github.com/antoinebrl/torchextractor.git
+pip install torchextractor  # stable
+pip install git+https://github.com/antoinebrl/torchextractor.git  # latest
 ```
 
 Requirements:
@@ -50,6 +51,8 @@ print(feature_shapes)
 [See more examples](docs/source/examples.ipynb)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/antoinebrl/torchextractor/HEAD?filepath=docs/source/examples.ipynb)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/antoinebrl/torchextractor/blob/master/docs/source/examples.ipynb)
+
+[Read the documentation](https://torchextractor.readthedocs.io/en/latest/)
 
 ## FAQ
 
@@ -126,3 +129,10 @@ If you want to get hands-on:
 5. Hack as much as you want!
 6. Run tests: `python -m unittest discover -vs ./tests/`
 7. Share your work and create a pull request.
+
+To Build documentation:
+```shell
+cd docs
+pip install requirements.txt
+make html
+```

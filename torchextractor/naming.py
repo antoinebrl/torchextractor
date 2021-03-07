@@ -20,7 +20,8 @@ def list_module_names(model: nn.Module) -> List[str]:
 
     Returns
     -------
-    List of names
+    list[str]:
+        List of names
     """
     return [name for name, module in model.named_modules()]
 

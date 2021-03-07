@@ -64,7 +64,6 @@ class Extractor(nn.Module):
     ):
         """
         Capture the intermediate feature maps of of model.
-        Behave like torch.nn.Module.
 
         Parameters
         ----------
