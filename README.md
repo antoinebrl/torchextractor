@@ -98,6 +98,7 @@ Pro-tip: name the output nodes by using `output_names` when calling `torch.onnx.
 **• Is it compatible with TorchScript?**
 
 Bad news, TorchScript cannot take variable number of arguments and keyword-only arguments.
+
 Good news, there is a workaround! The solution is to overwrite the `forward` function
 of `tx.Extractor` to replicate the interface of the model.
 
@@ -115,6 +116,39 @@ class MyExtractor(tx.Extractor):
 model = torchvision.models.resnet18(pretrained=True)
 model = MyExtractor(model, ["layer1", "layer2", "layer3", "layer4"])
 model_traced = torch.jit.script(model)
+```
+
+**• "One more thing!" :wink:**
+
+By default we capture the latest output of the relevant modules,
+but you can specify your own custom operations.
+
+For example, to accumulate features over 10 forward passes you
+can do the following:
+```python
+import torch
+import torchvision
+import torchextractor as tx
+
+model = torchvision.models.resnet18(pretrained=True)
+
+def capture_fn(module, input, output, module_name, feature_maps):
+    if module_name not in feature_maps:
+        feature_maps[module_name] = []
+    feature_maps[module_name].append(output)
+
+extractor = tx.Extractor(model, ["layer3", "layer4"], capture_fn=capture_fn)
+
+for i in range(20):
+    for i in range(10):
+        x = torch.rand(7, 3, 224, 224)
+        model(x)
+    feature_maps = extractor.collect()
+
+    # Do your stuffs here
+
+    # Discard collected elements
+    extractor.clear_placeholder()
 ```
 
 ## Contributing

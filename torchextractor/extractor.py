@@ -8,7 +8,16 @@ from torch import nn
 from .naming import attach_name_to_modules
 
 
-def hook_capture_module_output(module: nn.Module, input: Any, output: Any, feature_maps: Dict[str, Any]):
+def hook_wrapper(module: nn.Module, input: Any, output: Any, capture_fn: Callable, feature_maps: Dict[str, Any]):
+    """
+    Hook wrapper to expose module name to hook
+    """
+    capture_fn(module, input, output, module._extractor_fullname, feature_maps)
+
+
+def hook_capture_module_output(
+    module: nn.Module, input: Any, output: Any, module_name: str, feature_maps: Dict[str, Any]
+):
     """
     Hook function to capture the output of the module.
 
@@ -20,10 +29,12 @@ def hook_capture_module_output(module: nn.Module, input: Any, output: Any, featu
         Whatever is provided to the module.
     output:
         Whatever is computed by the module.
+    module_name: str
+        Fully qualifying name of the module
     feature_maps: dictionary - keys: fully qualifying module names
         Placeholder to store the output of the modules so it can be used later on
     """
-    feature_maps[module._extractor_fullname] = output
+    feature_maps[module_name] = output
 
 
 def register_hook(module_filter_fn: Callable, hook: Callable, hook_handles: List) -> Callable:
@@ -60,7 +71,7 @@ class Extractor(nn.Module):
         model: nn.Module,
         module_names: IterableType[str] = None,
         module_filter_fn: Callable = None,
-        caching_fn: Callable = None,
+        capture_fn: Callable = None,
     ):
         """
         Capture the intermediate feature maps of of model.
@@ -83,10 +94,19 @@ class Extractor(nn.Module):
                 def module_filter_fn(module, name):
                     return isinstance(module, torch.nn.Conv2d)
 
-        caching_fn: callable, default None
-            Operation to carry at each forward pass.
-            If not None, :func:`forward <collector.FeatureMapExtractor.forward>`
-            and :func:`collect <collector.FeatureMapExtractor.collect>` return an empty dictionary
+        capture_fn: callable, default None
+            Operation to carry at each forward pass. The function should comply to the following interface.
+
+            Example::
+
+                def capture_fn(
+                        module: nn.Module,
+                        input: Any,
+                        output: Any,
+                        module_name:str,
+                        feature_maps: Dict[str, Any]
+                    ):
+                    feature_maps[module_name] = output
         """
         assert (
             module_names is not None or module_filter_fn is not None
@@ -103,9 +123,9 @@ class Extractor(nn.Module):
         self.hook_handles = []
 
         module_filter_fn = module_filter_fn or (lambda module, name: name in module_names)
-        caching_fn = caching_fn or hook_capture_module_output
-        caching_fn = partial(caching_fn, feature_maps=self.feature_maps)
-        self.model.apply(register_hook(module_filter_fn, caching_fn, self.hook_handles))
+        capture_fn = capture_fn or hook_capture_module_output
+        hook_fn = partial(hook_wrapper, capture_fn=capture_fn, feature_maps=self.feature_maps)
+        self.model.apply(register_hook(module_filter_fn, hook_fn, self.hook_handles))
 
     def collect(self) -> Dict[str, nn.Module]:
         """
