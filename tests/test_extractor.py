@@ -137,25 +137,6 @@ class TestExtractor(unittest.TestCase):
         except ImportError as e:
             print(e)
 
-    def test_jit_override(self):
-        class MyExtractor(Extractor):
-            def forward(self, x):
-                output = self.model(x)
-                return output, self.feature_maps
-
-        model = MyTinyVGG()
-        names = ["block1", "block2"]
-        model = MyExtractor(model, names).eval()
-        input = torch.rand((5, 3, 32, 32))
-        output1, feature_maps1 = model(input)
-
-        model_traced = torch.jit.script(model)
-        output2, feature_maps2 = model_traced(input)
-
-        self.assertTrue(torch.allclose(output1, output2))
-        for name in names:
-            self.assertTrue(torch.allclose(feature_maps1[name], feature_maps2[name]))
-
 
 if __name__ == "__main__":
     unittest.main()
